@@ -87,6 +87,26 @@ export class PostsService {
     });
   }
 
+  async search(keyword: string) {
+    if (!keyword || keyword.trim() === '') {
+      return [];
+    }
+
+    return this.prisma.post.findMany({
+      where: {
+        OR: [
+          { title: { contains: keyword, mode: 'insensitive' } },
+          { content: { contains: keyword, mode: 'insensitive' } },
+          { tags: { some: { name: { contains: keyword, mode: 'insensitive' } } } },
+        ],
+      },
+      include: {
+        tags: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   findOne(id: number) {
     return this.prisma.post.findUnique({
       where: { id },
