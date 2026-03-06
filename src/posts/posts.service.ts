@@ -87,6 +87,26 @@ export class PostsService {
     });
   }
 
+  async findPaginated(page: number, limit: number, tag?: string) {
+    const skip = (page - 1) * limit;
+    const where = tag
+      ? { tags: { some: { name: { equals: tag, mode: 'insensitive' as const } } } }
+      : {};
+
+    const [data, total] = await Promise.all([
+      this.prisma.post.findMany({
+        where,
+        include: { tags: true },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.post.count({ where }),
+    ]);
+
+    return { data, total, page, limit };
+  }
+
   async search(keyword: string) {
     if (!keyword || keyword.trim() === '') {
       return [];
@@ -137,8 +157,26 @@ export class PostsService {
     });
   }
 
-  remove(id: number) {
-    return this.prisma.post.delete({ where: { id } });
+  async remove(id: number) {
+    const post = await this.prisma.post.findUnique({
+      where: { id },
+      include: { tags: { select: { id: true } } },
+    });
+
+    if (!post) return null;
+
+    await this.prisma.post.delete({ where: { id } });
+
+    if (post.tags.length > 0) {
+      await this.prisma.tag.deleteMany({
+        where: {
+          id: { in: post.tags.map((t) => t.id) },
+          posts: { none: {} },
+        },
+      });
+    }
+
+    return post;
   }
 
   async updateCover(id: number, coverConfig: any) {

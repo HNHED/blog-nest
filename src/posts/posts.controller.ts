@@ -20,6 +20,15 @@ export class PostsController {
     return this.postsService.findAll();
   }
 
+  @Get('paginated')
+  findPaginated(
+    @Query('page') page = '1',
+    @Query('limit') limit = '10',
+    @Query('tag') tag?: string,
+  ) {
+    return this.postsService.findPaginated(+page, +limit, tag);
+  }
+
   @Get('search')
   search(@Query('q') keyword: string) {
     return this.postsService.search(keyword);

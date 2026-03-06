@@ -5,9 +5,10 @@ import { PrismaService } from './prisma/prisma.service';
 import { PostsModule } from './posts/posts.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { UploadModule } from './upload/upload.module';
+import { TagsModule } from './tags/tags.module';
 
 @Module({
-  imports: [PostsModule, PrismaModule, UploadModule],
+  imports: [PostsModule, PrismaModule, UploadModule, TagsModule],
   controllers: [AppController],
   providers: [AppService, PrismaService],
 })
